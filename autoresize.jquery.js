@@ -16,7 +16,8 @@
             animateDuration : 150,
             animateCallback : function(){},
             extraSpace : 20,
-            limit: 1000
+            limit: 1000,
+            resizeImmediately: true
         }, options);
         
         // Only textarea's auto-resize:
@@ -50,7 +51,7 @@
 					
                 })(),
                 lastScrollTop = null,
-                updateSize = function() {
+                updateSize = function(forceResize) {
 					
                     // Prepare the clone:
                     clone.height(0).val($(this).val()).scrollTop(10000);
@@ -58,15 +59,18 @@
                     // Find the height of text:
                     var scrollTop = Math.max(clone.scrollTop(), origHeight) + settings.extraSpace,
                         toChange = $(this).add(clone);
+                    scrollTop = Math.min(scrollTop, settings.limit);
 						
                     // Don't do anything if scrollTip hasen't changed:
                     if (lastScrollTop === scrollTop) { return; }
                     lastScrollTop = scrollTop;
 					
                     // Check for limit:
-                    if ( scrollTop >= settings.limit ) {
+                    if (scrollTop == settings.limit) {
                         $(this).css('overflow-y','');
-                        return;
+                        if (!forceResize) {
+                            return;
+                        }
                     }
                     // Fire off callback:
                     settings.onResize.call(this);
@@ -76,6 +80,9 @@
                         toChange.stop().animate({height:scrollTop}, settings.animateDuration, settings.animateCallback)
                         : toChange.height(scrollTop);
                 };
+                if (settings.resizeImmediately) {
+                    updateSize.call(this, true);
+                }
             
             // Bind namespaced handlers to appropriate events:
             textarea
